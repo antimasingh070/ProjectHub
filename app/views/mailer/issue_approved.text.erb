@@ -25,10 +25,19 @@ Project Members:
 <% @members.each do |member| %>
   <% role_id = MemberRole.find_by(member_id: member.id)&.role_id %>
   <% role = Role.find_by(id: role_id) %>
+<<<<<<< HEAD
+  <%= "- #{member.user.name} (Role: #{role&.name || 'Not assigned'})" %>
+<% end %>
+
+Please log in to ProjectHUB to view and manage the issue details.
+
+ProjectHUB link: <%= link_to "ProjectHUB", "https://your_projecthub_url" %>
+=======
   <%= "- #{member.user.name} (#{role&.name || 'Not assigned'})" %>
 <% end %>
 
 Please log in to ProjectHUB to view and manage the issue details.
 ProjectHUB link: <%= "https://projecthub.hdbfs.com/#{@issue.id}" %>
+>>>>>>> a0c06d16bf8774c0c0e052fffb00ec9749ed7cb3
 
 Best Regards

@@ -80,6 +80,10 @@ class ProjectsController < ApplicationController
         @entries = scope.to_a
         send_data(query_to_csv(@entries, @query, params), :type => 'text/csv; header=present', :filename => 'projects.csv')
       end
+      format.json do
+        @projects = scope.offset(@offset).limit(@limit).to_a
+      end
+
     end
   end
 
@@ -248,19 +252,19 @@ class ProjectsController < ApplicationController
     # @project.author_id = User.current.id
     parent_id = @project.parent_id
     project_id = @project.id
-    if project_id.nil? && !parent_id.nil? && (parent_project = Project.find_by(id: parent_id))
-      new_identifier = "#{parent_project.identifier}_#{Project.where(parent_id: parent_id).count + 1}"
-    elsif project_id.nil? && !parent_id.nil?
-      new_identifier = "hdbfs_#{parent_id}_#{Project.where(parent_id: parent_id).count + 1}"
-    elsif !project_id.nil? && !parent_id.nil?
-      count = Project.where(parent_id: parent_id).where('id <= ?', project_id).count
-      new_identifier = "#{Project.find_by(id: parent_id).identifier}_#{count}"
-    elsif !project_id.nil?
-      new_identifier = "hdbfs_#{project_id}"
-    else
-      new_identifier = "hdbfs_#{Project.where(parent_id: parent_id).last.id + 1}"
-    end
-    @project.update_columns(identifier: "#{new_identifier}")
+    # if project_id.nil? && !parent_id.nil? && (parent_project = Project.find_by(id: parent_id))
+    #   new_identifier = "#{parent_project.identifier}_#{Project.where(parent_id: parent_id).count + 1}"
+    # elsif project_id.nil? && !parent_id.nil?
+    #   new_identifier = "hdbfs_#{parent_id}_#{Project.where(parent_id: parent_id).count + 1}"
+    # elsif !project_id.nil? && !parent_id.nil?
+    #   count = Project.where(parent_id: parent_id).where('id <= ?', project_id).count
+    #   new_identifier = "#{Project.find_by(id: parent_id).identifier}_#{count}"
+    # elsif !project_id.nil?
+    #   new_identifier = "hdbfs_#{project_id}"
+    # else
+    #   new_identifier = "hdbfs_#{Project.where(parent_id: parent_id).last.id + 1}"
+    # end
+    # @project.update_columns(identifier: "#{new_identifier}")
     if @project.save
       updated_fields = {}
       @project.previous_changes.each do |key, values|

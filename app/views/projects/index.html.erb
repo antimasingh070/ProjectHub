@@ -14,7 +14,7 @@
   <% if @entries.empty? %>
     <p class="nodata"><%= l(:label_no_data) %></p>
   <% else %>
-  <%= render :partial => @query.display_type, :locals => { :entries => @entries.reject { |entry| entry.name == "Master Project" }}%>
+  <%= render :partial => @query.display_type, :locals => { :entries => @entries.sort_by! { |project| project.identifier.to_i  }}%>
   <% end %>
 <% end %>
 

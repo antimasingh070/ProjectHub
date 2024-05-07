@@ -16,10 +16,10 @@ end %>
     custom_value = CustomValue.find_by(customized_type: "Project", customized_id: @project&.id, custom_field_id: custom_field.id)
     custom_value&.value # No need for further processing, return the value directly
 end %>
-<h1><strong> News Title:</strong> <%= link_to(@news.title, @news_url) %></h1>
-<em><strong> News Author:</strong><%= @news.author.name %></em>
+<h1><%= link_to(@news.title, @news_url) %></h1>
+<em><%= @news.author.name %></em>
 
-<em><strong> News Description:</strong><%= @news.author.name %></em><%= textilizable(@news, :description, :only_path => false) %>
+<%= textilizable(@news, :description, :only_path => false) %>
 <h2>Project Details:</h2>
 <ul>
   <li><strong>Name:</strong> <%= @project.name %></li>

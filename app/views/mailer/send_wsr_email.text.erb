@@ -1,0 +1,54 @@
+<% def custom_field_value(issue, field_name) %>
+  <% custom_field = CustomField.find_by(name: field_name) %>
+  <% custom_value = CustomValue.find_by(customized_type: "Issue", customized_id: issue&.id, custom_field_id: custom_field&.id) %>
+  <% custom_field_enumeration = CustomFieldEnumeration.find_by(id: custom_value&.value&.to_i) %>
+  <% custom_field_enumeration&.name %>
+<% end %>
+
+<% start_date_previous_week = Date.today.prev_week.beginning_of_week %>
+<% end_date_previous_week = Date.today.prev_week.end_of_week %>
+<% closed_issues_previous_week = @project.issues.where(closed_on: start_date_previous_week..end_date_previous_week) %>
+
+<% start_date = Date.today %>
+<% end_date = Date.today + 7.days %>
+<% upcoming_due_date_issues = @project.issues.where(due_date: start_date..end_date) %>
+
+PROJECT WEEKLY STATUS REPORT - <%= @project.name %>
+
+OVERALL PROJECT STATUS
+Project Name: <%= @project.name %>
+Project Code: <%= @project.identifier %>
+Project Manager: Vivek Nangnukar & Samanyu Ghose
+Date of status entry: 3/27/2024
+Go live - Planned Date: 4/25/2024
+Go live - Actual Date:
+
+Project Start Date: 4/30/2023
+Project sponsor Name: Sarabjeet Singh
+
+STATUS KEY
+- ROADBLOCK / OVERAGE
+- POTENTIAL RISKS / DELAYS
+- ON TRACK
+- COMPLETED
+
+RISKS AND ROADBLOCKS/HELP REQUIRED
+RISK NUMBER | DESCRIPTION | Team/Owner Name | FIX
+<% # Loop through your risks and roadblocks and display them here %>
+
+ACTIVITY COMPLETED THIS WEEK
+Activity Name | Summary | Remarks | Scheduled Start Date | Actual Start Date | Scheduled End Date | Actual End Date
+<% closed_issues_previous_week.each do |closed_issue| %>
+  <%= "Milestones" %> | <%= closed_issue.subject %> | <%= closed_issue.description %> | <%= "remarks" %> | <%= closed_issue.start_date %> | <%= custom_field_value(closed_issue, "Actual Start Date") %> | <%= closed_issue.due_date %> | <%= custom_field_value(closed_issue, "Actual End Date") %>
+<% end %>
+
+WORK PLANNED ACTIVITY FOR NEXT WEEK
+Activity | DESCRIPTION | Team/Owner Name | Status | Scheduled Start Date | Actual Start Date | Scheduled End Date | Actual End Date
+<% upcoming_due_date_issues.each do |opened_issues| %>
+  <%= opened_issues.subject %> | <%= opened_issues.description %> | "Team/Owner Name" | <%= IssueStatus.find(opened_issues.status_id).name %> | <%= opened_issues.start_date %> | <%= custom_field_value(opened_issues, "Actual Start Date") %> | <%= opened_issues.due_date %> | <%= custom_field_value(opened_issues, "Actual End Date") %>
+<% end %>
+
+Regards,
+Sweta Mehta
+PMO
+HDB Financial Services Ltd

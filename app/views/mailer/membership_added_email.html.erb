@@ -59,7 +59,7 @@ id = custom_value&.value&.to_i
         <p>Function Name: <%= custom_function('Function Name') %></p>
         <p>Portfolio Category: <%= custom_function('Portfolio Category') %></p>
         <p>Priority Level: <%= custom_function('Priority Level') %></p>
-        <p>Member list with role: <%= @user %> (<%= @role %>)</p>
+        <p>Member list with role: </p>
         <% previous_members = @project.members.where.not(id: nil) %>
         <% existing_members = @project.members %>
         <% existing_members.each do |member| %>

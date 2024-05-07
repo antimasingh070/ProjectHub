@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Dashboard</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <title>Table to PDF</title>  
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+<style>
+
+.sort-icon {
+    display: inline-block;
+    margin-left: 5px;
+}
+.sort-icon::before {
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+}
+.sort-icon.asc::before {
+    content: "\f078"; /* Icon for ascending order (caret-up) */
+}
+.sort-icon.desc::before {
+    content: "\f077"; /* Icon for descending order (caret-down) */
+}
+
+label {
+  font-weight: bold;
+  margin-right: 10px;
+}
+@media print {
+  
+  .no-print, .no-print * {
+    display: none !important;
+  }
+ 
+}
+@media screen {
+    .print-only-image {
+      display: none;
+    }
+  }
+
+  @media print {
+    .print-only-image {
+      display: block; 
+      position: absolute;
+      right: 10px;
+      top: 0;
+      margin: 5px 0 0 auto;
+      width: 200px; 
+      height: 50px;
+    }
+  }
+select, input[type="number"], input[type="submit"], button {
+  padding: 5px 10px;
+  font-size: 14px;
+  border: none;
+  border-radius: 3px;
+  margin-top: 5px;
+}
+.hover-red:hover {
+  background-color: red;
+}
+
+button:hover {
+  background-color: #218838;
+}
+
+  form {
+    margin-bottom: 20px;
+  }
+
+  label {
+    font-weight: bold;
+    margin-right: 10px;
+  }
+
+  select {
+    padding: 5px;
+    font-size: 14px;
+  }
+
+
+  h1 {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+  } 
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-family: Arial, sans-serif;
+  }
+
+  th, td {
+    border: 1px solid #dddddd;
+    padding: 8px;
+    text-align: left;
+    font-size: 13px;
+  }
+
+  th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+  }
+
+  tr:nth-child(even) {
+    background-color: #f2f2f2;
+  }
+  .flex-container {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+  }
+  
+  # .flex-container > .container-1 {
+  #   # background-color: #f4f4f4;
+  #   # background-color: grey;
+  #   padding: 10px;
+  #   border-radius: 5px;
+  #   margin-top: 10px;
+  #   width: 100%;
+  #   box-sizing: border-box;
+  #   margin: 20px;
+  #   flex-direction: column;
+  # }
+  .dashboard {
+    font-family: Arial, sans-serif;
+    padding: 5px;
+    margin: 20px;
+    font-size: 13px;
+    # background-color: #f4f4f4;
+  }
+  
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  
+  .filter-group {
+    margin-right: 20px;
+    margin-bottom: 10px;
+  }
+  
+  .filter-group label {
+    margin-right: 5px;
+  }
+  
+  .filter-group select,
+  .filter-group input[type="number"] {
+    padding: 5px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+  }
+  
+  .filter-group input[type="number"] {
+    width: 50px;
+  }
+  
+  .filter-group select {
+    min-width: 120px;
+  }
+
+  .flex-container > .container-2 {
+    # background-color: #f4f4f4;
+    padding-top: -200px;
+    display: flex;
+    flex-direction: column;
+    width: 450px;
+  
+  }
+  
+  input[type="number"],
+  input,
+  select {
+    flex: 1;
+    margin-left: 10px;
+    border: 1px solid #ccc;
+    padding: 3px;
+  }
+  
+  .item {
+    font-size: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  
+  .text {
+  flex: 1;
+  margin-right: 10px;
+}
+
+
+  .color-box {
+    width: 20px;
+    height: 20px;
+    border-radius: 3px;
+  }
+  
+  @media (min-width: 768px) {
+    .container-1,
+    .container-2 {
+      width: 45%;
+      margin-left: 2.5%;
+    }
+  
+    .form-container {
+      width: 100%;
+    }
+  }
+  
+  @media (min-width: 1200px) {
+    .container-1,
+    .container-2 {
+      width: 45%;
+      margin-left: 2.5%;
+    }
+  
+    .form-container {
+      width: 45%;
+      margin-left: 2.5%;
+    }
+  }  
+  @media print {
+  body {
+    -webkit-print-color-adjust: exact; /* Chrome, Safari */
+    color-adjust: exact; /* Firefox */
+  }
+}
+
+</style>
+</head>
+<body>
+
+<h1 style="font-weight: bold; font-size: 18px; text-align: center;">Project Dashboard</h1>
+  <form action="" method="get">
+  <div class="flex-container">
+  <div class="dashboard">
+    <div class="filters no-print">
+      <div class="filter-group">
+        <label for="name_filter">Project Name:</label>
+        <select name="name_filter" id="name_filter">
+          <option value="">All</option>
+          <% @names.each do |name| %>
+            <option value="<%= name %>" <%= 'selected' if params[:name_filter] == name %>><%= name %></option>
+          <% end %>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="category_filter">Portfolio Category:</label>
+        <select name="category_filter" id="category_filter">
+          <option value="">All</option>
+          <% @categories.each do |category| %>
+            <option value="<%= category %>" <%= 'selected' if params[:category_filter] == category %>><%= category %></option>
+          <% end %>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="function_filter">Function Name:</label>
+        <select name="function_filter" id="function_filter">
+          <option value="">All</option>
+          <% @functions.each do |function| %>
+            <option value="<%= function %>" <%= 'selected' if params[:function_filter] == function %>><%= function %></option>
+          <% end %>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="manager_filter">Project Manager:</label>
+        <select name="manager_filter" id="manager_filter">
+          <option value="">All</option>
+          <% @manageres.each do |manager| %>
+            <option value="<%= manager %>" <%= 'selected' if params[:manager_filter] == manager %>><%= manager %></option>
+          <% end %>
+        </select>
+      </div>
+
+      <div class="filter-group">
+      <label for="start_date">Scheduled Start Date:</label>
+      <div class="date-range">
+        <input type="date" name="start_date_from" id="start_date_from" value="<%= params[:start_date_from] %>">
+        <span>to</span>
+        <input type="date" name="start_date_to" id="start_date_to" value="<%= params[:start_date_to] %>">
+      </div>
+    </div>
+    
+      <div class="filter-group">
+        <label for="end_date">Scheduled End Date:</label>
+        <div class="date-range">
+          <input type="date" name="end_date_from" id="end_date_from" value="<%= params[:end_date_from] %>">
+          <span>to</span>
+          <input type="date" name="end_date_to" id="end_date_to" value="<%= params[:end_date_to] %>">
+        </div>
+      </div>
+      
+      <div class="filter-group">
+      <label for="status_filter">Status:</label>
+      <select name="status_filter" id="status_filter">
+        <option value="">All</option>
+        <% @statuses.each do |status| %>
+          <% selected = (params[:status_filter] == status_id(status) || (status == 'Active' && params[:status_filter].blank?)) ? 'selected' : '' %>
+          <option value="<%= status_id(status) %>" <%= selected %>><%= status %></option>
+        <% end %>
+      </select>
+      </div> 
+      <div class="filter-group">
+        <input type="submit" value="Filter" id= "form-group">
+        <button type="submit" onclick="clearFilters()" class="hover-red">Clear</button>
+        <button onclick="exportToCsv()">Export as CSV</button>
+        <button onclick="exportToPdf()">Export as PDF</button>
+      </div>
+    </div>
+  </div>
+  </form>
+
+
+  <div class="container-2">
+  <h3>RAG Status</h3>
+    <div class="item">
+      <div class="text">Sch. end date  < today or no revised date</div>
+      <div class="color-box" style="background-color: red;"></div>
+    </div>
+    <div class="item">
+      <div class="text">Sch. end date  > today or revised date after <%= (params[:days].present? ? params[:days].to_i : 30) %> days</div>
+      <div class="color-box" style="background-color: red;"></div>
+    </div>
+    <div class="item">
+      <div class="text">Sch. end date >= today or revised date within <%= (params[:days].present? ? params[:days].to_i : 30) %> days</div>
+      <div class="color-box" style="background-color: #FFBF00;"></div>
+    </div>
+    <div class="item">
+      <div class="text">Sch. end date  > today & no revised date</div>
+      <div class="color-box" style="background-color: green;"></div>
+    </div>
+  </div>
+  </div>
+
+  <img class="print-only-image" src="/images/../images/hdbfs.png" width="200" height="50">
+  <div style="overflow-y: auto; height: 400px; width: 100%; text-align: center;" class= "dashboard-container" id = "table-container">
+<table  style="table-layout: fixed; width: 100%;" id= "project-table" >
+  <thead>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <tr>
+      <th rowspan="2" style="width: 100px; white-space: normal; cursor: pointer;" class="order" >Project Name <span class="sort-icon"></span></th>
+      <th  rowspan="2" style="width: 100px;  white-space: normal;" >Status <span class="sort-icon"></span></th>
+      <th  rowspan="2" style="width: 100px;  white-space: normal;" >Project Manager <span class="sort-icon"></span></th>
+      <th  rowspan="2" style="width: 100px;  white-space: normal;" >Project Lead <span class="sort-icon"></span></th>
+      <th  rowspan="2" style="width: 100px;  white-space: normal;" >Next Week Planned Activity <span class="sort-icon"></span></th>
+      <th  rowspan="2" style="width: 100px;  white-space: normal;" >Last Activity Completed <span class="sort-icon"></span></th>
+      <th  rowspan="2" style="width: 100px;  white-space: normal;" >Portfolio Category <span class="sort-icon"></span></th>
+      <th  rowspan="2" style="width: 100px;  white-space: normal;" class="order">Scheduled Start Date <span class="sort-icon"></span></th>
+      <th rowspan="2" style="width: 100px;  white-space: normal;" class="order">Scheduled End Date <span class="sort-icon"></span></th>
+      <th  rowspan="2" style="width: 100px;  white-space: normal;" class="order">Go Live date <span class="sort-icon"></span></th>
+      <th  rowspan="2" style="width: 100px;  white-space: normal;" class="order">Revised End Date <span class="sort-icon"></span></th>
+      <th  rowspan="2" style="width: 100px;  white-space: normal;" >Function Name <span class="sort-icon"></span></th>
+      <th colspan="3" style="width: 100px; white-space: normal; text-align: center;">Open / Total <span class="sort-icon"></span></th>
+      <th rowspan="2" style="width: 100px;  white-space: normal;" class="sort>Open Risk <span class="sort-icon"></span></th>
+      <th  rowspan="2" style="width: 100px;  white-space: normal;" class="sortable">% Done <span class="sort-icon"></span></th>
+    </tr>
+    <tr>
+      <th style="width: 100px; white-space: normal; text-align: center;" class="sortable">UAT <span class="sort-icon"></span></th>
+      <th style="width: 100px; white-space: normal; text-align: center;" class="sortable">Project Task View <span class="sort-icon"></span></th>
+      <th style="width: 100px; white-space: normal; text-align: center;" class="sortable">CR <span class="sort-icon"></span></th>
+    </tr>
+  </thead>
+  <tbody>
+    <% portfolio_category_counts = Hash.new(0) %>
+    <% @projects.each do |project| %>
+      <% category = custom_field_value(project, "Portfolio Category") %>
+      <% portfolio_category_counts[category] += 1 %>
+      <tr>
+        <td><%= link_to project.name, project_path(project) %></td>
+        <% scheduled_end_date = Date.parse(date_value(project, "Scheduled End Date")) rescue nil %>
+        <% revised_due_date = Date.parse(date_value(project, "Revised Due Date")) rescue nil %>
+        <% if (scheduled_end_date.present? && scheduled_end_date < Date.today) || revised_due_date.blank?  %>
+          <td style="background-color: green; color: white;" readonly size="5"><%= @project_status_text[project.status] %></td>
+        <% elsif (scheduled_end_date.present? && scheduled_end_date >= Date.today) || revised_due_date.present? %>
+          <td style="background-color: #FFBF00; color: white;" readonly size="5"><%= @project_status_text[project.status] %></td>
+        <% elsif (scheduled_end_date.present? && scheduled_end_date > Date.today) || revised_due_date < Date.today %>
+            <td style="background-color: red; color: white;" readonly size="5"><%= @project_status_text[project.status] %></td>
+        <% end %>
+        <td><%= member_name(project, "Project Manager") %></td>
+        <td><%= member_name(project, "Project Lead") %></td>
+        <td><%= custom_field_value_week(project, "Project Activity") %></td>
+        <td><%= custom_field_value(project, "Project Activity") %></td>
+        <td><%= custom_field_value(project, "Portfolio Category") %></td>
+        <td><%= formatted_date(date_value(project, "Scheduled Start Date")) %></td>
+        <td><%= formatted_date(date_value(project, "Scheduled End Date")) %></td>
+        <td><%= formatted_date(date_value(project, "Go Live date")) %></td>
+        <td><%= formatted_date(date_value(project, "Revised End Date")) %></td>        
+        <td><%= custom_field_value(project, "User function") %></td>
+        <% tracker_id = Tracker.find_by(name: "Risk Register")&.id %>
+        <% open_issue_count = Issue.where(project_id: project.id, tracker_id: tracker_id, status_id: [1,2,4,6,7]).count %>
+        <% id = project.identifier %>
+        
+        <td><%= tracker_count(project, "UAT Issues") %></td>
+        <% tracker_id = Tracker.find_by(name: "Project Plan- Activity List")&.id %>
+        <td><%= link_to tracker_count(project, "Project Plan- Activity List"), "/projects/#{id}/issues?set_filter=1&tracker_id=#{tracker_id}" %></td>
+        <td><%= tracker_count(project, "Change Request") %></td>
+        <td><%= link_to open_issue_count, "/projects/#{id}/issues?set_filter=1&tracker_id=#{tracker_id}&status_id=[1,3,4]" %></td>
+        <td><%= percentage_done(project) %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<script>
+    function generatePDF() {
+        const doc = new jsPDF();
+        doc.autoTable({
+            html: '#project-table',
+            styles: {
+                lineColor: [192, 192, 192], // Light grey color for border
+                lineWidth: 0.5, // Border width
+                headStyles: {
+                    fillColor: [192, 192, 192] // Grey color for table head
+                }
+            }
+        });
+        doc.save('table.pdf');
+    }
+</script>
+
+<button onclick="generatePDF()">Download PDF</button>
+<script src="https://unpkg.com/jspdf@latest"></script>
+<script src="https://unpkg.com/jspdf-autotable@latest"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-qZvrmS2ekKPF2mSznTQsxqPgnpkI4DNTlrdUmTzrDgektczlKNRRhy5X5AAOnx5S09ydFYWWNSfcEqDTTHgtNA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.es.js" integrity="sha512-VTufZOUx+Gc0N4JkluA0ZkVs2x4wfDI3p60gRWpHT761kMQ+hiNlYI+8MGXbLO48ymPKAeRa1wsEm3BIaxSEvw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.js" integrity="sha512-Bw9Zj8x4giJb3OmlMiMaGbNrFr0ERD2f9jL3en5FmcTXLhkI+fKyXVeyGyxKMIl1RfgcCBDprJJt4JvlglEb3A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.3.2/jspdf.debug.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.15/jspdf.plugin.autotable.min.js"></script>
+<script>
+
+
+
+
+
+</div>
+</body>
+</html>
+<script>
+function table_sort() {
+    const styleSheet = document.createElement('style')
+    styleSheet.innerHTML = `
+        .order-inactive span {
+            visibility:hidden;
+        }
+        .order-inactive:hover span {
+            visibility:visible;
+        }
+        .order-active span {
+            visibility: visible;
+        }
+    `
+    document.head.appendChild(styleSheet)
+
+    document.querySelectorAll('th.order').forEach(th_elem => {
+        let asc = true
+        const span_elem = document.createElement('span')
+        span_elem.style = "font-size:0.8rem; margin-left:0.5rem"
+        span_elem.innerHTML = "▼"
+        th_elem.appendChild(span_elem)
+        th_elem.classList.add('order-inactive')
+
+        const index = Array.from(th_elem.parentNode.children).indexOf(th_elem)
+        th_elem.addEventListener('click', (e) => {
+            document.querySelectorAll('th.order').forEach(elem => {
+                elem.classList.remove('order-active')
+                elem.classList.add('order-inactive')
+            })
+            th_elem.classList.remove('order-inactive')
+            th_elem.classList.add('order-active')
+
+            if (!asc) {
+                th_elem.querySelector('span').innerHTML = '▲'
+            } else {
+                th_elem.querySelector('span').innerHTML = '▼'
+            }
+            const arr = Array.from(th_elem.closest("table").querySelectorAll('tbody tr'))
+            arr.sort((a, b) => {
+                const a_val = parseDate(a.children[index].innerText)
+                const b_val = parseDate(b.children[index].innerText)
+                return (asc) ? a_val - b_val : b_val - a_val
+            })
+            arr.forEach(elem => {
+                th_elem.closest("table").querySelector("tbody").appendChild(elem)
+            })
+            asc = !asc
+        })
+    })
+}
+
+function parseDate(dateString) {
+    const parts = dateString.split(' ')
+    const day = parseInt(parts[0])
+    const month = parseMonth(parts[1])
+    const year = parseInt(parts[2])
+    return new Date(year, month, day)
+}
+
+function parseMonth(monthString) {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    return months.indexOf(monthString)
+}
+
+table_sort()
+
+
+</script>
+<script>
+
+
+function downloadPDF() {
+    const element = document.getElementById('project-table');  // Make sure the ID matches your table's ID
+    if (!element) {
+        console.error('Element not found!');
+        return;
+    }
+
+    html2canvas(element).then(canvas => {
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF({
+            orientation: 'landscape',
+            unit: 'px',
+            format: [canvas.width, canvas.height]
+        });
+        pdf.addImage(imgData, 'PNG', 0, 0);
+        pdf.save('download.pdf');
+    }).catch(error => console.error('html2canvas error:', error));
+}
+</script>
+
+<script>
+
+ function exportToCsv() {
+    const rows = [];
+    const table = document.querySelector('table');
+    table.querySelectorAll('tr').forEach(row => {
+        const rowData = [];
+        row.querySelectorAll('th, td').forEach(cell => {
+            if (cell.classList.contains('multiple-values')) {
+                const values = [];
+                cell.querySelectorAll('.value').forEach(value => {
+                    values.push(value.innerText);
+                });
+                rowData.push(values.join(', ')); // Concatenate multiple values into a single string
+            } else {
+                rowData.push(cell.innerText);
+            }
+        });
+        rows.push('"' + rowData.join('","') + '"');
+    });
+    const csv = rows.join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    saveAs(blob, 'project_dashboard.csv');
+}
+
+  function clearFilters() {
+    document.getElementById('category_filter').value = '';
+    document.getElementById('function_filter').value = '';
+    document.getElementById('status_filter').value = '';
+    document.getElementById('manager_filter').value = '';
+    document.getElementById('name_filter').value = '';
+    document.getElementById('start_date_from').value = '';
+    document.getElementById('start_date_to').value = '';
+    document.getElementById('end_date_from').value = '';
+    document.getElementById('end_date_to').value = '';
+    document.getElementById('form-group').click();
+  }
+  
+</script>
+

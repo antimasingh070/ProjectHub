@@ -1,0 +1,230 @@
+<% def custom_field_value(issue, field_name) %>
+  <% custom_field = CustomField.find_by(name: field_name) %>
+  <% custom_value = CustomValue.find_by(customized_type: "Issue", customized_id: issue&.id, custom_field_id: custom_field&.id) %>
+  <% custom_field_enumeration = CustomFieldEnumeration.find_by(id: custom_value&.value&.to_i) %>
+  <% custom_field_enumeration&.name %>
+<% end %>
+<% def custom_field_value(project, field_name) %>
+  <% custom_field = CustomField.find_by(name: field_name) %>
+  <% custom_value = CustomValue.find_by(customized_type: "Project", customized_id: project&.id, custom_field_id: custom_field&.id) %>
+  <% custom_field_enumeration = CustomFieldEnumeration.find_by(id: custom_value&.value&.to_i) %>
+  <% custom_field_enumeration&.name %>
+<% end %>
+<% def custom_field_value_date(project, field_name) %>
+  <% custom_field = CustomField.find_by(name: field_name) %>
+  <% custom_value = CustomValue.find_by(customized_type: "Project", customized_id: project&.id, custom_field_id: custom_field&.id) %>
+  <% custom_field_enumeration = custom_value&.value %>
+  <% custom_field_enumeration %>
+<% end %>
+<% start_date_previous_week = Date.today.prev_week.beginning_of_week %>
+<% end_date_previous_week = Date.today.prev_week.end_of_week %>
+<% closed_issues_previous_week = @project.issues.where(closed_on: start_date_previous_week..end_date_previous_week) %>
+<% "Closed issues from #{start_date_previous_week} to #{end_date_previous_week}:" %>
+<% start_date = Date.today %>
+<% end_date = Date.today + 7.days %> 
+<% upcoming_due_date_issues = @project.issues.where(due_date: start_date..end_date) %>
+<% "Issues with due dates from #{start_date} to #{end_date}:" %>
+<% def member_name(project, field_name) %>
+  <% project_lead_role = Role.find_by(name: field_name) %>
+
+  <% member_ids_with_lead_role = MemberRole.where(role_id: project_lead_role.id).pluck(:member_id) %>
+  <% project_lead_user_ids = Member.where(project_id: project.id, id: member_ids_with_lead_role).pluck(:user_id) %>
+
+  <% if project_lead_user_ids.present? %>
+    <% project_lead_users = User.where(id: project_lead_user_ids) %>
+    <% project_lead_names = project_lead_users.pluck(:firstname, :lastname) %>
+    <% if project_lead_names.size == 1 %>
+      <% firstname, lastname = project_lead_names.first %>
+      <% return "#{firstname} #{lastname}" %>
+    <% else %>
+      <% return project_lead_names.map { |firstname, lastname| "#{firstname} #{lastname}" }.join(', ') %>
+    <% end %>
+  <% else %>
+    <% return "" %>
+  <% end %>
+<% end %>
+
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+*{
+font-size: 15px;
+}
+table {
+  font-family: arial, sans-serif;
+  border-collapse: collapse;
+  width: 100%;
+}
+td, th {
+  border: 1px solid black;
+  text-align: left;
+  padding: 8px;
+}
+.side_status {
+text-align: center;
+}
+</style>
+</head>
+<body>
+
+<h1>PROJECT WEEKLY STATUS REPORT - <%= @project.name %></h1>
+<div style= "width: 500px; float: left;">
+<table>
+ <tr>
+ <td style= "font-weight: bold">
+ OVERALL PROJECT STATUS</td>
+ <td style= "background-color: orange">
+ POTENTIAL RISKS/DELAYS</td>
+ </tr>
+ <tr>
+ <td style= "font-weight: bold">Project Name</td>
+ <td><%= @project.name %></td>
+ <td style= "font-weight: bold">Project Code</td>
+ <td><%= @project.identifier %></td>
+ </tr>
+ <tr>
+ <td style= "font-weight: bold">Project Manager</td>
+ <td><%= member_name(@project, "Project Manager") %></td>
+ <td style= "font-weight: bold">Date of status entry</td>
+ <td>3/27/2024</td>
+ </tr>
+ <tr>
+ <td style= "font-weight: bold">Go live - Planned Date</td>
+ <td><%= custom_field_value_date(@project, "Planned Project Go Live date") %></td>
+ <td style= "font-weight: bold">Go live - Actual Date</td>
+ <td></td>
+ </tr>
+  <tr>
+ <td style= "font-weight: bold">Project Start Date</td>
+ <td><%= custom_field_value_date(@project, "Scheduled Start Date") %></td>
+ <td style= "font-weight: bold">Project Sponsor Name</td>
+ <td><%= member_name(@project, "Project Sponsor") %></td>
+ </tr>
+</table>
+</div>
+<div style= "width: 300px; float: right;">
+<table>
+ <tr style= "background-color: grey;"><td class= "side_status">STATUS KEY</td></tr>
+ <tr style= "background-color: red;"><td  class= "side_status">ROADBLOCK / COVERAGE</td></tr>
+ <tr style= "background-color: orange;"><td  class= "side_status">POTENTIAL RISKS / DELAYS</td></tr>
+ <tr style= "background-color: #90EE90;"><td  class= "side_status">ON TRACK</td></tr>
+ <tr style= "background-color: green;"><td  class= "side_status">COMPLETED</td></tr>
+</table>
+
+</div>
+<% @tracker = Tracker.find_by(name: "Risk Register") %>
+<% @risks = @project.issues.where(tracker_id: @tracker.id) %>
+<div style="clear: both"></div>
+
+<h1 style="padding-top: 100px">RISKS AND ROADBLOCKS/HELP REQUIRED</h1>
+<div style= "height: 300px;">
+<table>
+<tr style= "background-color: #c1c4e3">
+<th class= "side_status">RISK NUMBER</th>
+<th class= "side_status">DESCRIPTION</th>
+<th class= "side_status" style= "background-color: #ba0b11; color: white">Team/Owner Name</th>
+<th class= "side_status">FIX</th>
+</tr>
+<% @count =1 %>
+
+<% @risks.each do |risk| %>
+<tr>
+<td><%= @count %></td>
+<td><%= risk.subject %></td>
+<td><%= User.find(risk.author_id).login %></td>
+<td>FIX</td>
+</tr>
+<% @count=@count+1 %>
+<% end %>
+</table>
+<h1 style="padding-top: 40px">ACTIVITY COMPLETED THIS WEEK</h1>
+<div style= "height: 300px;">
+<table>
+<tr>
+<th>
+</th>
+<th class= "side_status">
+Activity Name
+</th>
+<th class= "side_status">
+Summary
+</th>
+<th class= "side_status">
+Remarks
+</th>
+<th class= "side_status">
+Scheduled Start Date
+</th>
+<th class= "side_status">
+Actual Start Date
+</th>
+<th class= "side_status">
+Scheduled End Date
+</th>
+<th class= "side_status">
+Actual End Date
+</th>
+</tr>
+<% closed_issues_previous_week.each do |closed_issue| %>
+<tr>
+<th rowspan = <%= closed_issues_previous_week.count %>>Milestones</th>
+  <td><%= closed_issue.subject %></td>
+  <td><%= closed_issue.description %></td>
+  <td><%= "remarks" %></td>
+  <td><%= closed_issue.start_date %></td>
+  <td><%= custom_field_value(closed_issue, "Actual Start Date") %></td>
+  <td><%= closed_issue.due_date %></td>
+  <td><%= custom_field_value(closed_issue, "Actual End Date") %></td>
+  </tr>
+<% end %>
+</table>
+<h1 style="padding-top: 40px; ">WORK PLANNED ACTIVITY FOR NEXT WEEK</h1>
+<div style= "height: 300px;">
+<table>
+<tr style= "background-color: #c1c4e3">
+<th class= "side_status">
+Activity
+</th>
+<th class= "side_status">
+DESCRIPTION</th>
+<th class= "side_status" style= "background-color: #ba0b11; color: white">
+Team/Owner Name
+</th>
+<th class= "side_status">
+Status
+</th>
+<th class= "side_status">
+Scheduled Start Date
+</th>
+<th class= "side_status">
+Actual Start Date
+</th>
+<th class= "side_status">
+Scheduled End Date
+</th>
+<th class= "side_status">
+Actual End Date
+</th>
+</tr>
+<% upcoming_due_date_issues.each do |opened_issues| %>
+<tr>
+<td><%= opened_issues.subject %></td>
+<td><%= opened_issues.description %></td>
+<td><%= User.find(open_issues.author_id).login %></td>
+<td><%= IssueStatus.find(opened_issues.status_id).name %></td>
+<td><%= opened_issues.start_date %></td>
+<td><%= custom_field_value(opened_issues, "Actual Start Date") %></td>
+<td><%= opened_issues.due_date %></td>
+<td><%= custom_field_value(opened_issues, "Actual End Date") %></td>
+</tr>
+<% end %>
+</table>
+<p style="padding-top: 10px; padding-bottom: 0px; margin-bottom: 0px">Regards,</p>
+<p style="padding-top: 0px; padding-bottom: 0px; margin-bottom: 0px; margin-top: 0px">Sweta Mehta</p>
+<p style="padding-top: 0px; padding-bottom: 0px; margin-bottom: 0px; margin-top: 0px">PMO</p>
+<span style="padding-top: 0px; padding-bottom: 0px; margin-bottom: 0px">HDB Financial Services Ltd</span>
+</div>
+</body>
+</html>
+

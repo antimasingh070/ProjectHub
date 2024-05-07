@@ -940,7 +940,6 @@ class Mailer < ActionMailer::Base
     @project = project
     @old_status = old_status
     @new_status = @project.status
-  binding.pry
     @old_status_text = STATUS_MAP[old_status] || "Unknown"
     @new_status_text = STATUS_MAP[@project.status] || "Unknown"
   
@@ -974,17 +973,89 @@ class Mailer < ActionMailer::Base
     @user = user
     @role = role
     @project = project
+<<<<<<< HEAD
+    mail :to => user.mail,
+      :subject => "[ProjectHUB] Project update: #{@project.name}  #{@project.identifier}"
+=======
     mail_data = user_mails(@project)
     mail_to = mail_data[:mail_to].uniq
     mail_cc = mail_data[:mail_cc].uniq
     mail(to: mail_to, cc: mail_cc, 
       :subject => "[ProjectHUB] New Project Created: #{@project.name}  #{@project.identifier} ")
+>>>>>>> a0c06d16bf8774c0c0e052fffb00ec9749ed7cb3
   end
 
   def self.deliver_membership_deleted_email(user, role, project)
     membership_deleted_email(user, role, project).deliver_later
   end
 
+  def send_issue_pdf(user, file_path)
+    attachments['issue.pdf'] = File.read(file_path, mode: 'rb')
+    mail(to: "ankitguptalu9@gmail.com", subject: 'New Project Created')
+  end
+
+  def self.deliver_send_issue_pdf(user, file_path)
+    send_issue_pdf(user, file_path).deliver_now
+  end
+
+  def send_dashboard_email(user, projects)
+    # attachments['project_dashboard.csv'] = File.read(csv_path, mode: 'rb')
+    # attachments['project_dashboard_pdf_generated.pdf'] = File.read(pdf_path, mode: 'rb')
+    @projects= projects
+    mail(to: "ankitguptalu9@gmail.com", subject: 'New Dashboard Data')
+  end
+  def self.deliver_send_dashboard_email(user, projects)
+    send_dashboard_email(user, projects).deliver_now
+  end
+ 
+  def send_wsr_email(user,project)
+    @project = project
+    @members = Member.where(project_id: @project.id)
+    
+    if @members.any?
+      @members.each do |member|
+        @member_role = MemberRole.find_by(member_id: member.id)
+        @role = Role.find_by(id: @member_role.role_id)
+        @user = User.find(member.user_id)
+      end
+    end
+
+    # Adjust the recipient of the email based on project or member data
+    @recipient_email = @members.pluck(:user_id).map { |user_id| User.find(user_id).mail }.join(",") # Pluck emails of all project members
+    
+    mail(to: "ankit.gupta.ext@hdbfs.com", subject: 'New Dashboard Data')  
+  end
+
+  def self.deliver_send_wsr_email(user,projects)
+    if Setting.notified_events.include?('send_wsr_email')
+      send_wsr_email(user,projects).deliver_now
+    end
+  end 
+
+  def send_issue_list(user, project, issues)
+    @project = project
+    @members = Member.where(project_id: @project.id)
+    @issues = issues
+    if @members.any?
+      @members.each do |member|
+        @member_role = MemberRole.find_by(member_id: member.id)
+        @role = Role.find_by(id: @member_role.role_id)
+        @user = User.find(member.user_id)
+      end
+    end
+
+    # Adjust the recipient of the email based on project or member data
+    @recipient_email = @members.pluck(:user_id).map { |user_id| User.find(user_id).mail }.join(",") # Pluck emails of all project members
+    
+    mail(to: "ankitguptalu9@gmail.com", subject: 'Issue List')
+  end
+
+  def self.deliver_send_issue_list(user, project,overdue_issues)
+    if overdue_issues.any?
+      send_issue_list(user, project, overdue_issues).deliver_now
+    end
+  end
+  
   private
 
   def user_mails(project)

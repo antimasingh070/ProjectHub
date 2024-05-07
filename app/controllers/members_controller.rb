@@ -117,8 +117,11 @@ class MembersController < ApplicationController
 
   def destroy
     if @member.deletable?
+      @member_role = MemberRole.find_by(member_id: @member.id)
+      @role= Role.find(@member_role.role_id)
       @member.destroy
-      # Mailer.deliver_membership_deleted_email(@user, @role, @project)
+      @user = User.find(@member.user_id)
+      Mailer.deliver_membership_deleted_email(@user, @role, @project)
     end
     respond_to do |format|
       format.html {redirect_to_settings_in_projects}

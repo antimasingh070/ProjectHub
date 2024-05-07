@@ -1,1 +1,18 @@
-<%= "membership deleted email" %>
+<%= "Members modified in ProjectHUB:" %>
+
+<%= "Member list with role" %>
+
+<%= "Previous Member: #{@user.firstname} #{@user.lastname} (#{@role.name})" %>
+
+<% existing_members = @project.members %>
+
+<%# Display existing members and their roles %>
+<% existing_members.each do |member| %>
+  <% if member.user.name != @user || member.roles.first.name != @role %>
+  <% role_id = MemberRole.find_by(member_id: member.id)&.role_id 
+     role = Role.find_by(id: role_id) %>
+  <%= "Current Members: #{member.user.name} (#{role.name})" %>
+  <% end %>
+<% end %>
+
+Please log in to ProjectHUB to view and manage the project details. 

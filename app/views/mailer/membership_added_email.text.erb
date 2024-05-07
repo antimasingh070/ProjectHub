@@ -38,7 +38,7 @@ id = custom_value&.value&.to_i
 <%# Display existing members and their roles %>
 <% existing_members.each do |member| %>
   <% if member.user.name != @user || member.roles.first.name != @role %>
-  <% role_id = MemberRole.find_by(member_id: member.id)&.role_id # Corrected typo here
+  <% role_id = MemberRole.find_by(member_id: member.id)&.role_id 
      role = Role.find_by(id: role_id) %>
   <%= "#{member.user.name} (#{role.name})" %>
   <% end %>

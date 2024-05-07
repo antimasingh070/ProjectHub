@@ -69,20 +69,56 @@
 <%= javascript_tag "observeAutocompleteField('issue_parent_issue_id', '#{escape_javascript(auto_complete_issues_path(:project_id => @issue.project, :scope => Setting.cross_project_subtasks, :status => @issue.closed? ? 'c' : 'o', :issue_id => @issue.id))}')" %>
 <% end %>
 
-<% if @issue.safe_attribute? 'start_date' %>
-<p id="start_date_area">
-  <%= f.date_field(:start_date, :size => 10, :required => !@issue.required_attribute?('start_date')) %>
-  <%= calendar_for('issue_start_date') %>
-</p>
-<% end %>
-
-<% if @issue.safe_attribute? 'due_date' %>
-<p id="due_date_area">
-  <%= f.date_field(:due_date, :size => 10, :required => !@issue.required_attribute?('due_date')) %>
-  <%= calendar_for('issue_due_date') %>
-</p>
-<% end %>
-
+      <% if @issue.safe_attribute? 'start_date' %>
+      <% if action_name == "edit" %>
+      <p id="start_date_area">
+        <% if !User.current.admin? %>
+          <% @members = Member.where(project_id: @project.id) %>
+          <% @pmo_present = @members.any? { |member| member.user_id == User.current.id && member.roles.pluck(:name).include?("PMO") } %>
+          <% if !@pmo_present %>
+            <%= f.date_field(:start_date, :size => 10, disabled: true) %>
+            <%= calendar_for('issue_start_date') %>
+          <% else %>
+            <%= f.date_field(:start_date, :size => 10, :required => !@issue.required_attribute?('start_date')) %>
+            <%= calendar_for('issue_start_date') %>
+          <% end %>
+        <% else %>
+          <%= f.date_field(:start_date, :size => 10, :required => !@issue.required_attribute?('start_date')) %>
+          <%= calendar_for('issue_start_date') %>
+        <% end %>
+      </p>
+      <% else %>
+      <p id="start_date_area">
+        <%= f.date_field(:start_date, :size => 10, :required => !@issue.required_attribute?('start_date')) %>
+        <%= calendar_for('issue_start_date') %>
+      </p>
+      <% end %>
+      <% end %>
+      <% if @issue.safe_attribute? 'due_date' %>
+      <% if action_name == "edit" %>
+      <p id="due_date_area">
+        <% if !User.current.admin? %>
+          <% @members = Member.where(project_id: @project.id) %>
+          <% @pmo_present = @members.any? { |member| member.user_id == User.current.id && member.roles.pluck(:name).include?("PMO") } %>
+          <% if !@pmo_present %>
+            <%= f.date_field(:due_date, :size => 10, disabled: true) %>
+            <%= calendar_for('issue_due_date') %>
+          <% else %>
+            <%= f.date_field(:due_date, :size => 10, :required => !@issue.required_attribute?('due_date')) %>
+            <%= calendar_for('issue_due_date') %>
+          <% end %>
+        <% else %>
+          <%= f.date_field(:due_date, :size => 10, :required => !@issue.required_attribute?('due_date')) %>
+          <%= calendar_for('issue_due_date') %>
+        <% end %>
+      </p>
+      <% else %>
+      <p id="start_date_area">
+        <%= f.date_field(:due_date, :size => 10, :required => !@issue.required_attribute?('due_date')) %>
+        <%= calendar_for('issue_due_date') %>
+      </p>
+      <% end %>
+      <% end %>
 <% if @issue.safe_attribute? 'estimated_hours' %>
 <p><%= f.hours_field :estimated_hours, :size => 3, :required => @issue.required_attribute?('estimated_hours') %> <%= l(:field_hours) %></p>
 <% end %>

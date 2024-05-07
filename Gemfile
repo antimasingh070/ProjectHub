@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 
 ruby '>= 2.7.0', '< 3.3.0'
-
+gem 'omniauth'
 gem 'rails', '6.1.7.6'
 gem 'rouge', '~> 4.2.0'
 gem 'request_store', '~> 1.5.0'
@@ -24,14 +24,14 @@ gem 'rexml', require: false if Gem.ruby_version >= Gem::Version.new('3.0')
 gem 'pry', '~> 0.14.2'
 gem 'pry-remote'
 gem 'pry-nav'
-
+gem 'byebug'
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem 'tzinfo-data', platforms: [:mingw, :x64_mingw, :mswin]
-
+gem 'whenever', require: false
+gem 'rmagick', "~> 6.0.0"
 # TOTP-based 2-factor authentication
 gem 'rotp', '>= 5.0.0'
 gem 'rqrcode'
-
 # HTML pipeline and sanitization
 gem "html-pipeline", "~> 2.13.2"
 gem "sanitize", "~> 6.0"

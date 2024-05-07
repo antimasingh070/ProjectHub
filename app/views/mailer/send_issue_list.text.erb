@@ -1,0 +1,9 @@
+Issue list for <%= @project.name %>
+
+ID | Tracker | Status | Priority | Subject | Assignee | Updated | Due Date
+-----------------------------------------------------------------------------------------------
+<% @issues.each do |issue| %>
+  <% if issue.due_date.present? && issue.due_date < Date.today %>
+    <%= issue.id %> | <%= Tracker.find(issue.tracker_id).name %> | <%= IssueStatus.find(issue.status_id).name %> | <%= issue.priority.name %> | <%= issue.subject %> | <%= issue&.assigned_to&.firstname %> <%= issue&.assigned_to&.lastname %> | <%= issue.updated_on %> | <%= issue.due_date %>
+  <% end %>
+<% end %>

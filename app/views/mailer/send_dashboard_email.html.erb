@@ -1,0 +1,426 @@
+<%
+@project_status_text = {
+    Project::STATUS_ACTIVE => 'Active',
+    Project::STATUS_CLOSED => 'Closed',
+    Project::STATUS_ARCHIVED => 'Archived',
+    Project::STATUS_SCHEDULED_FOR_DELETION => 'Scheduled for Deletion'
+  }
+
+def custom_field_value(project, field_name)
+  if field_name == "Project Activity"
+    custom_field = CustomField.find_by(name: field_name)
+    return "" unless custom_field
+
+    custom_value = CustomValue.find_by(customized_type: "Issue", customized_id: project.issues.where(status: 5)&.order(updated_on: :desc)&.last&.id, custom_field_id: custom_field&.id)
+    return "" unless custom_value
+
+    custom_field_enumeration = CustomFieldEnumeration.find_by(id: custom_value&.value&.to_i)
+    completed_date = ""
+    last_issue = project.issues.where(status: 5).order(updated_on: :desc).last
+    if last_issue
+      custom_value = CustomValue.find_by(customized_type: "Issue", customized_id: last_issue.id, custom_field_id: custom_field.id)
+      completed_date = last_issue.closed_on.strftime("%d %b %y") if last_issue.closed_on
+    end
+    "#{custom_field_enumeration&.name} (#{completed_date})" || ''
+  else
+    custom_field = CustomField.find_by(name: field_name)
+    return "" unless custom_field
+  
+    custom_value = CustomValue.find_by(customized_type: "Project", customized_id: project&.id, custom_field_id: custom_field&.id)
+    return "" unless custom_value
+  
+    custom_field_enumeration = CustomFieldEnumeration.find_by(id: custom_value&.value&.to_i)
+    custom_field_enumeration&.name || ''
+  end
+end
+
+def member_name(project, field_name)
+  project_lead_role = Role.find_by(name: field_name)
+  return "" unless project_lead_role
+
+  member_ids_with_lead_role = MemberRole.where(role_id: project_lead_role.id).pluck(:member_id)
+  project_lead_user_ids = Member.where(project_id: project.id, id: member_ids_with_lead_role).pluck(:user_id)
+
+  if project_lead_user_ids.present?
+    project_lead_users = User.where(id: project_lead_user_ids)
+    project_lead_names = project_lead_users.pluck(:firstname, :lastname)
+    return project_lead_names.map { |firstname, lastname| "#{firstname} #{lastname}" }.join(", ")
+  else
+    return ""
+  end
+end
+
+
+def date_value(project, field_name)
+    custom_field = CustomField.find_by(name: field_name)
+    custom_value = CustomValue.find_by(customized_type: "Project", customized_id: project&.id, custom_field_id: custom_field&.id)
+    date_string = custom_value&.value
+end
+  
+# Helper method to calculate % done
+def percentage_done(project)
+  tracker_id = Tracker.find_by(name: "Project- Activity List")&.id
+  total_issue_count = Issue.where(project_id: project&.id, tracker_id: tracker_id).count
+  return 0 if total_issue_count.zero?
+
+  closed_issue_count = Issue.where(project_id: project&.id, tracker_id: tracker_id, status_id: [3,5])&.count
+  ((closed_issue_count.to_f / total_issue_count.to_f ) * 100).round()
+
+end
+
+
+def formatted_date(date_string)
+  return "" if date_string.nil?
+
+  begin
+    date = Date.parse(date_string)
+    date.strftime("%d %b %y")
+  rescue ArgumentError
+    ""
+  end
+end
+
+def tracker_count(project, field_name)
+  tracker_id = Tracker.find_by(name: field_name)&.id
+  open_issue_count = Issue.where(project_id: project.id, tracker_id: tracker_id, status_id: [1,2,4,6,7]).count 
+  total_issue_count = Issue.where(project_id: project.id, tracker_id: tracker_id).count 
+  return "#{open_issue_count} / #{total_issue_count}"
+end
+
+def status_id(status)
+  case status
+  when 'Active'
+    Project::STATUS_ACTIVE
+  when 'Closed'
+    Project::STATUS_CLOSED
+  when 'Archived'
+    Project::STATUS_ARCHIVED
+  when 'Scheduled for Deletion'
+    Project::STATUS_SCHEDULED_FOR_DELETION
+  else
+    ''
+  end
+end
+
+%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Dashboard</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+<style>
+label {
+  font-weight: bold;
+  margin-right: 10px;
+}
+@media print {
+  
+  .no-print, .no-print * {
+    display: none !important;
+  }
+ 
+}
+@media screen {
+    .print-only-image {
+      display: none;
+    }
+  }
+
+  @media print {
+    .print-only-image {
+      display: block; 
+      position: absolute;
+      right: 10px;
+      top: 0;
+      margin: 5px 0 0 auto;
+      width: 200px; 
+      height: 50px;
+    }
+  }
+select, input[type="number"], input[type="submit"], button {
+  padding: 5px 10px;
+  font-size: 14px;
+  border: none;
+  border-radius: 3px;
+  margin-top: 5px;
+}
+.hover-red:hover {
+  background-color: red;
+}
+
+button:hover {
+  background-color: #218838;
+}
+
+  form {
+    margin-bottom: 20px;
+  }
+
+  label {
+    font-weight: bold;
+    margin-right: 10px;
+  }
+
+  select {
+    padding: 5px;
+    font-size: 14px;
+  }
+
+
+  h1 {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+  } 
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-family: Arial, sans-serif;
+  }
+
+  th, td {
+    border: 1px solid #dddddd;
+    padding: 8px;
+    text-align: left;
+    font-size: 13px;
+  }
+
+  th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+  }
+
+  tr:nth-child(even) {
+    background-color: #f2f2f2;
+  }
+  .flex-container {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+  }
+  
+  # .flex-container > .container-1 {
+  #   # background-color: #f4f4f4;
+  #   # background-color: grey;
+  #   padding: 10px;
+  #   border-radius: 5px;
+  #   margin-top: 10px;
+  #   width: 100%;
+  #   box-sizing: border-box;
+  #   margin: 20px;
+  #   flex-direction: column;
+  # }
+  .dashboard {
+    font-family: Arial, sans-serif;
+    padding: 5px;
+    margin: 20px;
+    font-size: 13px;
+    # background-color: #f4f4f4;
+  }
+  
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  
+  .filter-group {
+    margin-right: 20px;
+    margin-bottom: 10px;
+  }
+  
+  .filter-group label {
+    margin-right: 5px;
+  }
+  
+  .filter-group select,
+  .filter-group input[type="number"] {
+    padding: 5px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+  }
+  
+  .filter-group input[type="number"] {
+    width: 50px;
+  }
+  
+  .filter-group select {
+    min-width: 120px;
+  }
+
+  .flex-container > .container-2 {
+    # background-color: #f4f4f4;
+    padding-top: -200px;
+    display: flex;
+    flex-direction: column;
+    width: 450px;
+  
+  }
+  
+  input[type="number"],
+  input,
+  select {
+    flex: 1;
+    margin-left: 10px;
+    border: 1px solid #ccc;
+    padding: 3px;
+  }
+  
+  .item {
+    font-size: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  
+  .text {
+  flex: 1;
+  margin-right: 10px;
+}
+
+
+  .color-box {
+    width: 20px;
+    height: 20px;
+    border-radius: 3px;
+  }
+  
+  @media (min-width: 768px) {
+    .container-1,
+    .container-2 {
+      width: 45%;
+      margin-left: 2.5%;
+    }
+  
+    .form-container {
+      width: 100%;
+    }
+  }
+  
+  @media (min-width: 1200px) {
+    .container-1,
+    .container-2 {
+      width: 45%;
+      margin-left: 2.5%;
+    }
+  
+    .form-container {
+      width: 45%;
+      margin-left: 2.5%;
+    }
+  }  
+  @media print {
+  body {
+    -webkit-print-color-adjust: exact; /* Chrome, Safari */
+    color-adjust: exact; /* Firefox */
+  }
+}
+
+</style>
+</head>
+<body>
+
+<h1 style="font-weight: bold; font-size: 18px; text-align: center;">Project Dashboard</h1>
+
+  <div class="container-2">
+  <h3>RAG Status</h3>
+    <div class="item">
+      <div class="text">Sch. end date  < today or no revised date</div>
+      <div class="color-box" style="background-color: red;"></div>
+    </div>
+    <div class="item">
+      <div class="text">Sch. end date  > today or revised date after 30 days</div>
+      <div class="color-box" style="background-color: red;"></div>
+    </div>
+    <div class="item">
+      <div class="text">Sch. end date >= today or revised date within 30 days</div>
+      <div class="color-box" style="background-color: #FFBF00;"></div>
+    </div>
+    <div class="item">
+      <div class="text">Sch. end date  > today & no revised date</div>
+      <div class="color-box" style="background-color: green;"></div>
+    </div>
+  </div>
+  </div>
+
+  <img class="print-only-image" src="/images/../images/hdbfs.png" width="200" height="50">
+  <div style="overflow-y: auto; height: 400px; width: 100%; text-align: center;">
+<table  style="table-layout: fixed; width: 100%;" >
+  <thead>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.0/FileSaver.min.js"></script>
+    <tr>
+      <th rowspan="2" style="width: 10%; white-space: normal;">Project Name</th>
+      <th  rowspan="2" style="width: 10%;  white-space: normal;">Status</th>
+      <th  rowspan="2" style="width: 10%;  white-space: normal;">Project Manager</th>
+      <th  rowspan="2" style="width: 10%;  white-space: normal;">Project Lead</th>
+      <th  rowspan="2" style="width: 10%;  white-space: normal;">Next Week Planned Activity</th>
+      <th  rowspan="2" style="width: 10%;  white-space: normal;">Last Activity Completed</th>
+      <th  rowspan="2" style="width: 10%;  white-space: normal;">Portfolio Category</th>
+      <th  rowspan="2" style="width: 10%;  white-space: normal;">Scheduled Start Date</th>
+      <th rowspan="2" style="width: 10%;  white-space: normal;">Scheduled End Date</th>
+      <th  rowspan="2" style="width: 10%;  white-space: normal;">Go Live date</th>
+      <th  rowspan="2" style="width: 10%;  white-space: normal;">Revised End Date</th>
+      <th  rowspan="2" style="width: 10%;  white-space: normal;">Function Name</th>
+      <th colspan="3" style="width: 30%; white-space: normal; text-align: center;">Open / Total</th>
+      <th rowspan="2" style="width: 10%;  white-space: normal;">Open Risk</th>
+      <th  rowspan="2" style="width: 10%;  white-space: normal;">% Done</th>
+    </tr>
+    <tr>
+      <th style="width: 10%; white-space: normal; text-align: center;">UAT</th>
+      <th style="width: 10%; white-space: normal; text-align: center;">Project Task View</th>
+      <th style="width: 10%; white-space: normal; text-align: center;">CR</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% portfolio_category_counts = Hash.new(0) %>
+    <% @projects.each do |project| %>
+      <% category = custom_field_value(project, "Portfolio Category") %>
+      <% portfolio_category_counts[category] += 1 %>
+      <tr>
+        <td><%= project.name %></td>
+        <% scheduled_end_date = Date.parse(date_value(project, "Scheduled End Date")) rescue nil %>
+        <% revised_due_date = Date.parse(date_value(project, "Revised Due Date")) rescue nil %>
+        <% if scheduled_end_date.present? && scheduled_end_date > Date.today && revised_due_date.blank?  %>
+          <td style="background-color: green; color: white;" readonly size="5"><%= @project_status_text[project.status] %></td>
+        <% elsif scheduled_end_date.present? && scheduled_end_date < Date.today || revised_due_date.blank? %>
+          <td style="background-color: red; color: white;" readonly size="5"><%= @project_status_text[project.status] %></td>
+      <% elsif revised_due_date.present? && scheduled_end_date.present? && (scheduled_end_date > Date.today || scheduled_end_date <= Date.today) && revised_due_date < Date.today + (params[:days].present? ? params[:days].to_i : 30).days %>
+          <td style="background-color: #FFBF00; color: white;" readonly size="5"><%= @project_status_text[project.status] %></td>
+        <% elsif revised_due_date.present? && scheduled_end_date.present? && scheduled_end_date > Date.today && revised_due_date >= Date.today + (params[:days].present? ? params[:days].to_i : 30).to_i.days %>
+          <td style="background-color: red; color: white;" readonly size="5"><%= @project_status_text[project.status] %></td>
+        <% else %>
+        <td style="background-color: red; color: white;" readonly size="5"><%= @project_status_text[project.status] %></td>
+        <% end %>
+        <td><%= member_name(project, "Project Manager") %></td>
+        <td><%= member_name(project, "Project Lead") %></td>
+        <td><%= custom_field_value(project, "Project Activity") %></td>
+        <td><%= custom_field_value(project, "Project Activity") %></td>
+        <td><%= custom_field_value(project, "Portfolio Category") %></td>
+        <td><%= formatted_date(date_value(project, "Scheduled Start Date")) %></td>
+        <td><%= formatted_date(date_value(project, "Scheduled End Date")) %></td>
+        <td><%= formatted_date(date_value(project, "Go Live date")) %></td>
+        <td><%= formatted_date(date_value(project, "Revised End Date")) %></td>        
+        <td><%= custom_field_value(project, "User function") %></td>
+        <% tracker_id = Tracker.find_by(name: "Risk Register")&.id %>
+        <% open_issue_count = Issue.where(project_id: project.id, tracker_id: tracker_id, status_id: [1,2,4,6,7]).count %>
+        <% id = project.identifier %>
+        <td><%= link_to open_issue_count, "/projects/#{id}/issues?set_filter=1&tracker_id=#{tracker_id}&status_id=[1,3,4]" %></td>
+        <% tracker_id = Tracker.find_by(name: "Bug")&.id %>
+        <td><%= link_to tracker_count(project, "Bug"), "/projects/#{id}/issues?set_filter=1&tracker_id=#{tracker_id}" %></td>
+        <td><%= tracker_count(project, "Bug") %></td>
+        <td><%= tracker_count(project, "Bug") %></td>
+        <td><%= percentage_done(project) %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+</div>
+</body>
+</html>

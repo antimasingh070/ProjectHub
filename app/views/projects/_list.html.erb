@@ -39,16 +39,47 @@
       <% end %>
     </tr>
   <% end %>
+     <% def custom_field_value_date(project, field_name) 
+       custom_field = CustomField.find_by(name: field_name) 
+       custom_value = CustomValue.find_by(customized_type: "Project", customized_id: project&.id, custom_field_id: custom_field&.id)
+       custom_field_enumeration = custom_value&.value
+      custom_field_enumeration
+     end %>
   <tr id="project-<%= entry.id %>" class="<%= cycle('odd', 'even') %> hascontextmenu <%= entry.css_classes %> <%= level > 0 ? "idnt idnt-#{level}" : nil %>">
     <% if @admin_list && !entry.scheduled_for_deletion? %>
       <td class="checkbox hide-when-print"><%= check_box_tag("ids[]", entry.id, false, :id => nil) %></td>
     <% end %>
     <% @query.inline_columns.each do |column| %>
+      <% custom_field = column&.instance_variable_get(:@cf) %>
+      <% custom_field_name = custom_field&.name %>
+      <% if custom_field_name == "Scheduled End Date" %>
+      <% if custom_field_value_date(entry, "Scheduled End Date").present? %>
+      <% if custom_field_value_date(entry, "Scheduled End Date")&.to_date < Date.today %>
+      <%= content_tag('td', column_content(column, entry), :class => :identifier, style: "color: red") %>
+      <% else %>
+      <%= content_tag('td', column_content(column, entry), :class => :identifier) %>
+
+      <% end %>
+       <% end %>
+       <% end %>
+
+       <% if custom_field_name == "Revised End Date" %>
+       <% if custom_field_value_date(entry, "Revised End Date").present? %>
+       <% if custom_field_value_date(entry, "Revised End Date")&.to_date < Date.today %>
+      <%= content_tag('td', column_content(column, entry), :class => :identifier, style: "color: red") %>
+      <% else %>
+      <%= content_tag('td', column_content(column, entry), :class => :identifier) %>
+
+      <% end %>
+       <% end %>
+       <% end %>
+
+
       <% if column.name == :name %>
         <%= content_tag('td', column_content(column, entry), :class => :identifier) %>
       <% elsif column.name == :identifier %>
         <%= content_tag('td', column_content(column, entry), :class => :name) %>
-      <% else %>
+      <% elsif custom_field_name!= "Scheduled End Date" && custom_field_name!= "Revised End Date" %>
         <%= content_tag('td', column_content(column, entry), :class => column.css_classes) %>
       <% end %>
     <% end %>

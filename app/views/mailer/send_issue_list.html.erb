@@ -1,0 +1,113 @@
+<html>
+<head>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+  }
+
+  table.list.issues {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+
+  table.list.issues th, table.list.issues td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+  }
+
+  table.list.issues th {
+    background-color: #f2f2f2;
+    color: #333;
+  }
+
+  table.list.issues tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+
+  table.list.issues tr:hover {
+    background-color: #e9e9e9;
+  }
+
+  table.list.issues a {
+    color: #06c;
+    text-decoration: none;
+  }
+
+  table.list.issues a:hover {
+    text-decoration: underline;
+  }
+
+  .hascontextmenu {
+    cursor: pointer;
+  }
+
+  .priority-default {
+    font-weight: bold;
+  }
+
+  .desc, .asc {
+    padding-left: 20px;
+    background-repeat: no-repeat;
+    background-position: left center;
+  }
+</style>
+</head>
+<body>
+<p>Issue list for <%= @project.name %></p>
+<table class="list issues odd-even sort-by-id sort-desc">
+  <thead>
+    <tr>
+      <th class="id"><a title="Sort by &quot;ID&quot;" class="sort desc icon icon-sorted-asc" href="/projects/hdbfs_2/issues?sort=id">ID</a></th>
+      <th class="tracker"><a title="Sort by &quot;Tracker&quot;" href="/projects/hdbfs_2/issues?sort=tracker%2Cid%3Adesc">Tracker</a></th>
+      <th class="status"><a title="Sort by &quot;Status&quot;" href="/projects/hdbfs_2/issues?sort=status%2Cid%3Adesc">Status</a></th>
+      <th class="priority"><a title="Sort by &quot;Priority&quot;" href="/projects/hdbfs_2/issues?sort=priority%3Adesc%2Cid%3Adesc">Priority</a></th>
+      <th class="subject"><a title="Sort by &quot;Subject&quot;" href="/projects/hdbfs_2/issues?sort=subject%2Cid%3Adesc">Subject</a></th>
+      <th class="assigned_to"><a title="Sort by &quot;Assignee&quot;" href="/projects/hdbfs_2/issues?sort=assigned_to%2Cid%3Adesc">Assignee</a></th>
+      <th class="updated_on"><a title="Sort by &quot;Updated&quot;" href="/projects/hdbfs_2/issues?sort=updated_on%3Adesc%2Cid%3Adesc">Updated</a></th>
+      <th class="due_date"><a title="Sort by &quot;Due date&quot;" href="/projects/hdbfs_2/issues?sort=due_date%2Cid%3Adesc">Due date</a></th>
+    </tr>
+  </thead>
+  <tbody>
+  <% @issues.each do |issue| %>
+    <% if issue.due_date.present? && issue.due_date < Date.today %>
+    <% def custom_field_value_date(issue, field_name) 
+       custom_field = CustomField.find_by(name: field_name) 
+       custom_value = CustomValue.find_by(customized_type: "Issue", customized_id: issue&.id, custom_field_id: custom_field&.id)
+       custom_field_enumeration = custom_value&.value
+      custom_field_enumeration
+     end %>
+    <% if custom_field_value_date(issue, "Revised planned due date").present?  %>
+    <% if custom_field_value_date(issue, "Revised planned due date").to_date < Date.today %>
+      <tr id="issue-<%= issue.id %>" class="hascontextmenu odd-even issue tracker-<%= issue.tracker_id %> status-<%= issue.status_id %> priority-<%= issue.priority_id %> priority-default %>">
+        <td class="id"><a href="/issues/<%= issue.id %>"><%= issue.id %></a></td>
+        <td class="tracker"><%= Tracker.find(issue.tracker_id).name %></td>
+        <td class="status"><%= IssueStatus.find(issue.status_id).name %></td>
+        <td class="priority"><%= issue.priority.name %></td>
+        <td class="subject"><a href="/issues/<%= issue.id %>"><%= issue.subject %></a></td>
+        <td class="assigned_to"><%= issue&.assigned_to&.firstname %> <%= issue&.assigned_to&.lastname %></td>
+        <td class="updated_on"><%= issue.updated_on %></td>
+        <td class="due_date"><%= custom_field_value_date(issue, "Revised planned due date").to_date %></td>
+      </tr>
+      <% else %>
+      <% end %>
+      <% else %>
+      <tr id="issue-<%= issue.id %>" class="hascontextmenu odd-even issue tracker-<%= issue.tracker_id %> status-<%= issue.status_id %> priority-<%= issue.priority_id %> priority-default %>">
+        <td class="id"><a href="/issues/<%= issue.id %>"><%= issue.id %></a></td>
+        <td class="tracker"><%= issue.tracker_id %></td>
+        <td class="status"><%= issue.status_id %></td>
+        <td class="priority"><%= issue.priority.name %></td>
+        <td class="subject"><a href="/issues/<%= issue.id %>"><%= issue.subject %></a></td>
+        <td class="assigned_to"><%= issue&.assigned_to&.firstname %> <%= issue&.assigned_to&.lastname %></td>
+        <td class="updated_on"><%= issue.updated_on %></td>
+        <td class="due_date"><%= issue.due_date %></td>
+    <% end %>
+    <% else %>
+  <% end %>  
+  <% end %>
+  </tbody>
+</table>
+</body>
+</html>

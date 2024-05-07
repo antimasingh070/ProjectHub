@@ -100,7 +100,22 @@ module ActionView
 
       alias :date_field_tag_without_max :date_field_tag
       def date_field_tag(name, value = nil, options = {})
-        date_field_tag_without_max(name, value, options.reverse_merge(max: '9999-12-31'))
+        options[:max] = '9999-12-31'
+
+        if action_name == "settings"
+          target = name.match(/\[(\d+)\]/)&.captures&.first&.to_i
+          custom_field = CustomField.find_by_id(target)
+          
+          if custom_field&.name&.in? ["Scheduled Start Date", "Scheduled End Date"]
+            if !User.current.admin?
+              @members = Member.where(project_id: @project.id)
+              @pmo_present = @members.any? { |member| member.user_id == User.current.id && member.roles.pluck(:name).include?("PMO") }
+              
+              options[:disabled] = true unless @pmo_present
+            end
+          end
+        end
+        date_field_tag_without_max(name, value, options)
       end
     end
 

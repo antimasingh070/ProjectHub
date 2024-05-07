@@ -26,10 +26,18 @@ assignee = User.find_by(id: assigned_to_id) %>
   <% @members.each do |member| %>
     <% role_id = MemberRole.find_by(member_id: member.id)&.role_id %>
     <% role = Role.find_by(id: role_id) %>
+<<<<<<< HEAD
+    <li><%= "#{member.user.name} (Role: #{role&.name || 'Not assigned'})" %></li>
+=======
     <li><%= "#{member.user.name} (#{role&.name || 'Not assigned'})" %></li>
+>>>>>>> a0c06d16bf8774c0c0e052fffb00ec9749ed7cb3
   <% end %>
 </ul>
 
 <p>Please log in to ProjectHUB to view and manage the issue details.</p>
+<<<<<<< HEAD
+<p><a href="<%= projecthub_url %>" class="link">ProjectHUB</a></p>
+=======
 <p><a href="<%= https://projecthub.hdbfs.com/#{@issue.id} %>" class="link">ProjectHUB</a></p>
+>>>>>>> a0c06d16bf8774c0c0e052fffb00ec9749ed7cb3
 <p>Best Regards</p>

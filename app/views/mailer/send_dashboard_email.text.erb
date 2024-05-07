@@ -1,0 +1,148 @@
+<%
+@project_status_text = {
+    Project::STATUS_ACTIVE => 'Active',
+    Project::STATUS_CLOSED => 'Closed',
+    Project::STATUS_ARCHIVED => 'Archived',
+    Project::STATUS_SCHEDULED_FOR_DELETION => 'Scheduled for Deletion'
+  }
+
+def custom_field_value(project, field_name)
+  if field_name == "Project Activity"
+    custom_field = CustomField.find_by(name: field_name)
+    return "" unless custom_field
+
+    custom_value = CustomValue.find_by(customized_type: "Issue", customized_id: project.issues.where(status: 5)&.order(updated_on: :desc)&.last&.id, custom_field_id: custom_field&.id)
+    return "" unless custom_value
+
+    custom_field_enumeration = CustomFieldEnumeration.find_by(id: custom_value&.value&.to_i)
+    completed_date = ""
+    last_issue = project.issues.where(status: 5).order(updated_on: :desc).last
+    if last_issue
+      custom_value = CustomValue.find_by(customized_type: "Issue", customized_id: last_issue.id, custom_field_id: custom_field.id)
+      completed_date = last_issue.closed_on.strftime("%d %b %y") if last_issue.closed_on
+    end
+    "#{custom_field_enumeration&.name} (#{completed_date})" || ''
+  else
+    custom_field = CustomField.find_by(name: field_name)
+    return "" unless custom_field
+  
+    custom_value = CustomValue.find_by(customized_type: "Project", customized_id: project&.id, custom_field_id: custom_field&.id)
+    return "" unless custom_value
+  
+    custom_field_enumeration = CustomFieldEnumeration.find_by(id: custom_value&.value&.to_i)
+    custom_field_enumeration&.name || ''
+  end
+end
+
+def member_name(project, field_name)
+  project_lead_role = Role.find_by(name: field_name)
+  return "" unless project_lead_role
+
+  member_ids_with_lead_role = MemberRole.where(role_id: project_lead_role.id).pluck(:member_id)
+  project_lead_user_ids = Member.where(project_id: project.id, id: member_ids_with_lead_role).pluck(:user_id)
+
+  if project_lead_user_ids.present?
+    project_lead_users = User.where(id: project_lead_user_ids)
+    project_lead_names = project_lead_users.pluck(:firstname, :lastname)
+    return project_lead_names.map { |firstname, lastname| "#{firstname} #{lastname}" }.join(", ")
+  else
+    return ""
+  end
+end
+
+
+def date_value(project, field_name)
+    custom_field = CustomField.find_by(name: field_name)
+    custom_value = CustomValue.find_by(customized_type: "Project", customized_id: project&.id, custom_field_id: custom_field&.id)
+    date_string = custom_value&.value
+end
+  
+# Helper method to calculate % done
+def percentage_done(project)
+  tracker_id = Tracker.find_by(name: "Project- Activity List")&.id
+  total_issue_count = Issue.where(project_id: project&.id, tracker_id: tracker_id).count
+  return 0 if total_issue_count.zero?
+
+  closed_issue_count = Issue.where(project_id: project&.id, tracker_id: tracker_id, status_id: [3,5])&.count
+  ((closed_issue_count.to_f / total_issue_count.to_f ) * 100).round()
+
+end
+
+
+def formatted_date(date_string)
+  return "" if date_string.nil?
+
+  begin
+    date = Date.parse(date_string)
+    date.strftime("%d %b %y")
+  rescue ArgumentError
+    ""
+  end
+end
+
+def tracker_count(project, field_name)
+  tracker_id = Tracker.find_by(name: field_name)&.id
+  open_issue_count = Issue.where(project_id: project.id, tracker_id: tracker_id, status_id: [1,2,4,6,7]).count 
+  total_issue_count = Issue.where(project_id: project.id, tracker_id: tracker_id).count 
+  return "#{open_issue_count} / #{total_issue_count}"
+end
+
+def status_id(status)
+  case status
+  when 'Active'
+    Project::STATUS_ACTIVE
+  when 'Closed'
+    Project::STATUS_CLOSED
+  when 'Archived'
+    Project::STATUS_ARCHIVED
+  when 'Scheduled for Deletion'
+    Project::STATUS_SCHEDULED_FOR_DELETION
+  else
+    ''
+  end
+end
+%>
+
+Project Dashboard
+
+Project Dashboard
+
+  Project Dashboard
+
+    <% portfolio_category_counts = Hash.new(0) %>
+    <% @projects.each do |project| %>
+      <% category = custom_field_value(project, "Portfolio Category") %>
+      <% portfolio_category_counts[category] += 1 %>
+        <% scheduled_end_date = Date.parse(date_value(project, "Scheduled End Date")) rescue nil %>
+        <% revised_due_date = Date.parse(date_value(project, "Revised Due Date")) rescue nil %>
+        <% if scheduled_end_date.present? && scheduled_end_date > Date.today && revised_due_date.blank?  %>
+          <%= @project_status_text[project.status] %>
+        <% elsif scheduled_end_date.present? && scheduled_end_date < Date.today || revised_due_date.blank? %>
+          <%= @project_status_text[project.status] %>
+      <% elsif revised_due_date.present? && scheduled_end_date.present? && (scheduled_end_date > Date.today || scheduled_end_date <= Date.today) && revised_due_date < Date.today + (params[:days].present? ? params[:days].to_i : 30).days %>
+          <%= @project_status_text[project.status] %>
+        <% elsif revised_due_date.present? && scheduled_end_date.present? && scheduled_end_date > Date.today && revised_due_date >= Date.today + (params[:days].present? ? params[:days].to_i : 30).to_i.days %>
+          <%= @project_status_text[project.status] %>
+        <% else %>
+        <%= @project_status_text[project.status] %>
+        <% end %>
+        <%= member_name(project, "Project Manager") %>
+        <%= member_name(project, "Project Lead") %>
+        <%= custom_field_value(project, "Project Activity") %>
+        <%= custom_field_value(project, "Project Activity") %>
+        <%= custom_field_value(project, "Portfolio Category") %>
+        <%= formatted_date(date_value(project, "Scheduled Start Date")) %>
+        <%= formatted_date(date_value(project, "Scheduled End Date")) %>
+        <%= formatted_date(date_value(project, "Go Live date")) %>
+        <%= formatted_date(date_value(project, "Revised End Date")) %>
+        <%= custom_field_value(project, "User function") %>
+        <% tracker_id = Tracker.find_by(name: "Risk Register")&.id %>
+        <% open_issue_count = Issue.where(project_id: project.id, tracker_id: tracker_id, status_id: [1,2,4,6,7]).count %>
+        <% id = project.identifier %>
+        <%= link_to open_issue_count, "/projects/#{id}/issues?set_filter=1&tracker_id=#{tracker_id}&status_id=[1,3,4]" %>
+        <% tracker_id = Tracker.find_by(name: "Bug")&.id %>
+        <%= link_to tracker_count(project, "Bug"), "/projects/#{id}/issues?set_filter=1&tracker_id=#{tracker_id}" %>
+        <%= tracker_count(project, "Bug") %>
+        <%= tracker_count(project, "Bug") %>
+        <%= percentage_done(project) %>
+    <% end %>

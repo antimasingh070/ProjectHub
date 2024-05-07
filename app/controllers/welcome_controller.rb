@@ -27,8 +27,7 @@ class WelcomeController < ApplicationController
     custom_field = CustomField.find_by(name: field_name)
     custom_value = CustomValue.find_by(customized_type: "Project", customized_id: project&.id, custom_field_id: custom_field&.id)
     date_string = custom_value&.value
-  end
-
+end
 
   def project_dashboard
     @project_status_text = {
@@ -145,3 +144,4 @@ class WelcomeController < ApplicationController
   end
 
 end
+

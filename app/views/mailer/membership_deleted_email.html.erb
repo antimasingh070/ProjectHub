@@ -1,1 +1,54 @@
-<h1>membership deleted email</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Project Created</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .header {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        p {
+            margin-bottom: 10px;
+        }
+        .link {
+            color: blue;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">Members modified in ProjectHUB</div>
+        <p>Member list with role</p>
+        
+        <%= "Previous Member: #{@user.firstname} #{@user.lastname} (#{@role.name})" %>
+
+        <% existing_members = @project.members %>
+
+        <%# Display existing members and their roles %>
+        <% existing_members.each do |member| %>
+        <% if member.user.name != @user || member.roles.first.name != @role %>
+        <% role_id = MemberRole.find_by(member_id: member.id)&.role_id 
+            role = Role.find_by(id: role_id) %>
+        <%= "Current Membesr: #{member.user.name} (#{role.name})" %>
+        <% end %>
+        <% end %>
+
+        <p>Please log in to ProjectHUB to view and manage the project details. </p>
+    </div>
+</body>
+</html>

@@ -41,3 +41,58 @@ end %>
 </body>
 </html>
 
+<% def custom_function_date(field_name)
+    custom_field = CustomField.find_by(name: field_name)
+    custom_value = CustomValue.find_by(customized_type: "Project", customized_id: @project&.id, custom_field_id: custom_field&.id)
+    custom_value
+end %>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Updated</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .header {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        p {
+            margin-bottom: 10px;
+        }
+        .link {
+            color: blue;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">Project has been updated in ProjectHUB:</div>
+        <p>Project Name: <%= @project.name %></p>
+        <p>Start Date: <%= custom_function_date('Start Date') %></p>
+        <p>End Date: <%= custom_function_date('End Date') %></p>
+        <p>Planned Go Live Date: <%= custom_function_date('Planned Go Live Date') %></p>
+        <p>Function Name: <%= custom_function('Function Name') %></p>
+        <p>Portfolio Category: <%= custom_function('Portfolio Category') %></p>
+        <p>Priority Level: <%= custom_function('Priority Level') %></p>
+        
+        <p>Please log in to ProjectHUB to view and manage the project details.</p>
+        <p><a href="" class="link">ProjectHUB</a></p>
+        <p>Best Regards</p>
+    </div>
+</body>
+</html>
